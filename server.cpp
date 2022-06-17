@@ -34,7 +34,6 @@ void end_connection(int id);
 int find_user_id(string name);
 void user_sign_in(int client_socket, int id);
 void user_sign_up(int client_socket, int id);
-void user_is_online(int client_socket);
 void handle_client(int client_socket, int id);
 // server control
 void server_control(int server_socket);
@@ -160,13 +159,6 @@ void end_connection(int id)
 
 string find_user_password(string find_name)
 {
-    for (int i = 0; i < clients.size(); i++)
-    {
-        if (clients[i].name == find_name)
-        {
-            return "user is online";
-        }
-    }
     ifstream ifs;
     ifs.open("./user_list.csv");
     string name, password = "";
@@ -216,33 +208,21 @@ void user_sign_in(int client_socket, string correct_password_str)
     }
 }
 
-void user_is_online(int client_socket)
-{
-    char message[200] = "user is online";
-    send(client_socket, message, sizeof(message), 0); // 告訴 client 不要重複登入
-}
-
 void handle_client(int client_socket, int id)
 {
     char name[200], str[200];
     recv(client_socket, name, sizeof(name), 0);
     string password = find_user_password(name);
 
-    if (password == "user is online")
-    {
-        user_is_online(client_socket);
-        end_connection(id);
-        return;
-    }
-    else if (password == "")
+    if (password == "")
     { // sign up
         user_sign_up(client_socket, name);
-        cout << name << " sign up successfully!" << endl;
+        cout << name << "sign up successfully!" << endl;
     }
     else
     { // sign in
         user_sign_in(client_socket, password);
-        cout << name << " sign in successfully!" << endl;
+        cout << name << "sign in successfully!" << endl;
     }
 
     set_name(id, name); // 設定名稱及上線
@@ -251,8 +231,7 @@ void handle_client(int client_socket, int id)
     string name_list = "Online users:";
     for (int i = 0; i < clients.size(); i++)
     {
-        if (clients[i].online == 1)
-            name_list += " " + clients[i].name;
+        name_list += " " + clients[i].name;
     }
 
     broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
@@ -264,6 +243,8 @@ void handle_client(int client_socket, int id)
 
     while (1)
     {
+        
+
         int bytes_received = recv(client_socket, str, sizeof(str), 0);
         if (bytes_received <= 0) // error(-1)或斷開連結(0)
             return;
@@ -275,9 +256,9 @@ void handle_client(int client_socket, int id)
             string name_list = "Online users:";
             for (int i = 0; i < clients.size(); i++)
             {
-                if (clients[i].online == 1)
-                    name_list += " " + clients[i].name;
+                name_list += " " + clients[i].name;
             }
+
             broadcast_message("#NULL", id);
             broadcast_message(message, id); // 輸出離開訊息到 client
             broadcast_message("#NULL", id);
@@ -298,6 +279,7 @@ void server_control(int server_socket)
     while (1)
     {
         cin.getline(str, 200);
+        
         if (strcmp(str, "#exit") == 0)
         {
             cout << "Close server and clients\n";
@@ -334,40 +316,46 @@ void server_control(int server_socket)
             cout << "Enter victim's name:";
             cin.getline(victim, 200);
             cout << "Removing " << victim << "......" << endl;
+            string message = string("\n\t----")+string(victim) + string(" has been removed----\n");
 
-            /*
-            for (auto it = clients.begin(); it != clients.end(); it++)
-            {
-                cout << (*it).name << "(" << (*it).id << ")\n";
-            }
-            */
-
-            int id = -1, i = 0;
+            // for (auto it = clients.begin(); it != clients.end(); it++)
+            // {
+            //     cout << (*it).name << "(" << (*it).id << ")\n";
+            // }
+            bool exist=false;
+            int  i = 0;
             for (i = 0; i < clients.size(); i++)
             {
                 const char *name_char = clients[i].name.c_str();
                 if (strcmp(name_char, victim) == 0)
                 {
+                    exist = true;
                     cout << "Find " << clients[i].name.c_str() << " with id = " << clients[i].id << endl;
-                    const char *message = "#remove";
-                    send(clients[i].socket, message, sizeof(message), 0);
-                    lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
-                    clients[i].th.detach();               // 關閉對應thread
-                    close(clients[i].socket);             // Close the client socket
-                    clients.erase(clients.begin() + i);   // Erase client information
                     break;
                 }
             }
-            if (i == clients.size())
+            if (!exist)
             {
                 cout << victim << " not exist.\n";
             }
             else
             {
-                string message = string(victim) + string(" has been removed.");
                 broadcast_message("#NULL", -1);
-                broadcast_message(message, -1);
+                broadcast_message(message,clients[i].id );//不傳給被踢的人
+
+                string kik_message = "\n\t!!!You were kiked out!!!\n";
+                
+                char temp[200];
+                strcpy(temp, kik_message.c_str());
+                send(clients[i].socket, temp, sizeof(temp), 0); // 只傳給被踢的人
+
                 shared_print(message);
+
+                // 從server 端剔除
+                lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
+                clients[i].th.detach();               // 關閉對應thread
+                close(clients[i].socket);             // Close the client socket
+                clients.erase(clients.begin() + i);   // Erase client information
             }
             cout << "done\n";
         }
