@@ -313,10 +313,12 @@ void server_control(int server_socket)
             cin.getline(victim, 200);
             cout << "Removing " << victim << "......" << endl;
 
+            /*
             for (auto it = clients.begin(); it != clients.end(); it++)
             {
                 cout << (*it).name << "(" << (*it).id << ")\n";
             }
+            */
 
             int id = -1, i = 0;
             for (i = 0; i < clients.size(); i++)
