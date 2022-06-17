@@ -18,6 +18,7 @@ struct client_information
     string name;
     int socket;
     thread th;
+    bool online;
 };
 
 // a global variable that records information of clients
@@ -83,9 +84,9 @@ int main()
         }
         counter++; // 紀錄client編號
 
-        thread t(handle_client, client_socket, counter);                             //為client 建立新的執行緒
-        lock_guard<mutex> guard(clients_mtx);                                        // synchronisztion
-        clients.push_back({counter, string("Anonymous"), client_socket, (move(t))}); //將所有client資訊整合
+        thread t(handle_client, client_socket, counter); //為client 建立新的執行緒
+        lock_guard<mutex> guard(clients_mtx);            // synchronisztion
+        clients.push_back({counter, string("Anonymous"), client_socket, (move(t)), 0}); //將所有client資訊整合
     }
 
     //關閉socket
@@ -113,6 +114,7 @@ void set_name(int id, char name[])
         if (clients[i].id == id)
         {
             clients[i].name = string(name);
+            clients[i].online = 1;
         }
     }
 }
@@ -132,7 +134,7 @@ int broadcast_message(string message, int sender_id)
     strcpy(temp, message.c_str());
     for (int i = 0; i < clients.size(); i++)
     {
-        if (clients[i].id != sender_id) // 不發送給自己
+        if (clients[i].id != sender_id && clients[i].online == 1) // 不發送給自己、不發送給正在登入的
         {
             send(clients[i].socket, temp, sizeof(temp), 0);
         }
@@ -211,7 +213,6 @@ void handle_client(int client_socket, int id)
 {
     char name[200], str[200];
     recv(client_socket, name, sizeof(name), 0);
-    set_name(id, name);
     string password = find_user_password(name);
 
     if (password == "")
@@ -225,6 +226,7 @@ void handle_client(int client_socket, int id)
         cout << "Sign in successfully!" << endl;
     }
 
+    set_name(id, name); // 設定名稱及上線
     // Display welcome message
     string welcome_message = string("Welcome ") + string(name) + string(" to join OS_2022 Chatroom~");
     string name_list = "Online users:";

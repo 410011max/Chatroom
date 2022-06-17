@@ -60,9 +60,9 @@ int main()
     {
         cout << "Create your password:" << endl;
         cin.getline(password, 200);
-        while (strlen(password) <= 3)
+        while (strlen(password) < 3)
         {
-            cout << "Your password is too short! (must be more than 3 words)" << endl;
+            cout << "Your password is too short! (must be at least 3 words)" << endl;
             cin.getline(password, 200);
         }
         send(client_socket, password, sizeof(password), 0);
