@@ -262,11 +262,12 @@ void handle_client(int client_socket, int id)
     shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
     shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
 
-    /*
+  
+cout << R"(  
                                                 __----~~~~~~~~~~~------___
                                    .  .   ~~//====......          __--~ ~~
                    -.            \_|//     |||\\  ~~~~~~::::... /~
-                ___-==_       _-~o~  \/    |||  \\            _/~~-
+                ___-==_       _-~~  \/    |||  \\            _/~~-
         __---~~~.==~||\=_    -_--~/_-~|-   |\\   \\        _/~
     _-~~     .=~    |  \\-_    '-~7  /-   /  ||    \      /
   .~       .~       |   \\ -_    /  /-   /   ||      \   /
@@ -283,7 +284,7 @@ void handle_client(int client_socket, int id)
                                       //.-~~~--\
 
                             神獸保佑    程式碼無BUG!
-    */
+    )"<<"\n";
 
     while (1)
     {
