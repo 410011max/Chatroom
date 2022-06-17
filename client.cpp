@@ -90,13 +90,6 @@ int main()
             }
         }
     }
-    else if (strcmp(server_message, "user is online") == 0)
-    {
-        cout << "User is alreay online." << endl;
-        exit_flag = true;
-        close(client_socket);
-        exit(-1);
-    }
     else
     {
         cout << "Something error!" << endl;
@@ -172,39 +165,37 @@ void recv_message(int client_socket)
 
         char name[200], str[200];
 
-        // int bytes_received = recv(client_socket, name, sizeof(name), 0);
-        // if (bytes_received <= 0)
-        //     continue;
+        int bytes_received = recv(client_socket, name, sizeof(name), 0);
+        if (bytes_received <= 0)
+            continue;
 
-        recv(client_socket, name, sizeof(name), 0);
-        if (strcmp(name, "#remove") == 0)
-        {
-            exit_flag = true;
-            t_send.detach();
-            t_recv.detach();
-            close(client_socket);
-            exit(-1);
-        }
+        if (strcmp(name, "#NULL") != 0)
+            cout << name << ": " << str << endl;
 
         recv(client_socket, str, sizeof(str), 0);
 
-        for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
+        for (int i = 0; i < 5; i++) // Erase text "Yout: " from terminal
             cout << '\b';
         time_t now = time(0);
         char *time_info = ctime(&now);
-        if (strcmp(name, "#NULL") != 0)
-            cout << name << ": " << str << endl << time_info;
-        else
-            cout << str << endl;
-
+       
+       
         // detect special instruction from server
-        if (strcmp(str, "\n\t//////server closed//////\n\t//////press enter to end//////") == 0)
+        if (strcmp(str, "\n\t//////server closed//////\n\t//////press enter to end//////") == 0 ||
+            strcmp(str, "\n\t!!!You were kiked out!!!\n") == 0)
         {
+            cout << str << endl;
             exit_flag = true;
             t_send.detach();
             close(client_socket);
             return;
         }
+
+        if (strcmp(name, "#NULL") != 0)
+            cout << name << ": " << str << endl << time_info;
+        else
+            cout << str << endl;
+
 
         cout << "You: ";
         fflush(stdout);
