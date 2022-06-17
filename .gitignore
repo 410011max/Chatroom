@@ -4,3 +4,4 @@ client
 server
 user_list.csv
 user_list.csv
+*.csv
