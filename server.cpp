@@ -34,6 +34,7 @@ void end_connection(int id);
 int find_user_id(string name);
 void user_sign_in(int client_socket, int id);
 void user_sign_up(int client_socket, int id);
+void user_is_online(int client_socket);
 void handle_client(int client_socket, int id);
 // server control
 void server_control(int server_socket);
@@ -159,6 +160,13 @@ void end_connection(int id)
 
 string find_user_password(string find_name)
 {
+    for (int i = 0; i < clients.size(); i++)
+    {
+        if (clients[i].name == find_name)
+        {
+            return "user is online";
+        }
+    }
     ifstream ifs;
     ifs.open("./user_list.csv");
     string name, password = "";
@@ -208,13 +216,25 @@ void user_sign_in(int client_socket, string correct_password_str)
     }
 }
 
+void user_is_online(int client_socket)
+{
+    char message[200] = "user is online";
+    send(client_socket, message, sizeof(message), 0); // 告訴 client 不要重複登入
+}
+
 void handle_client(int client_socket, int id)
 {
     char name[200], str[200];
     recv(client_socket, name, sizeof(name), 0);
     string password = find_user_password(name);
 
-    if (password == "")
+    if (password == "user is online")
+    {
+        user_is_online(client_socket);
+        end_connection(id);
+        return;
+    }
+    else if (password == "")
     { // sign up
         user_sign_up(client_socket, name);
         cout << name << " sign up successfully!" << endl;
@@ -231,7 +251,8 @@ void handle_client(int client_socket, int id)
     string name_list = "Online users:";
     for (int i = 0; i < clients.size(); i++)
     {
-        name_list += " " + clients[i].name;
+        if (clients[i].online == 1)
+            name_list += " " + clients[i].name;
     }
 
     broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
@@ -254,7 +275,8 @@ void handle_client(int client_socket, int id)
             string name_list = "Online users:";
             for (int i = 0; i < clients.size(); i++)
             {
-                name_list += " " + clients[i].name;
+                if (clients[i].online == 1)
+                    name_list += " " + clients[i].name;
             }
             broadcast_message("#NULL", id);
             broadcast_message(message, id); // 輸出離開訊息到 client
