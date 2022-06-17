@@ -90,6 +90,13 @@ int main()
             }
         }
     }
+    else if (strcmp(server_message, "user is online") == 0)
+    {
+        cout << "User is alreay online." << endl;
+        exit_flag = true;
+        close(client_socket);
+        exit(-1);
+    }
     else
     {
         cout << "Something error!" << endl;
