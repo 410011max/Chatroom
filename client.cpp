@@ -165,16 +165,14 @@ void recv_message(int client_socket)
 
         char name[200], str[200];
 
-        int bytes_received = recv(client_socket, name, sizeof(name), 0);
-        if (bytes_received <= 0)
-            continue;
+        // int bytes_received = recv(client_socket, name, sizeof(name), 0);
+        // if (bytes_received <= 0)
+        //     continue;
 
-        if (strcmp(name, "#NULL") != 0)
-            cout << name << ": " << str << endl;
-
+        recv(client_socket, name, sizeof(name), 0);
         recv(client_socket, str, sizeof(str), 0);
 
-        for (int i = 0; i < 5; i++) // Erase text "Yout: " from terminal
+        for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
             cout << '\b';
         time_t now = time(0);
         char *time_info = ctime(&now);
