@@ -671,5 +671,3 @@ void recv_message(int client_socket)
         fflush(stdout);
     }
 }
-    }
-}

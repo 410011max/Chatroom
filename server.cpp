@@ -319,6 +319,7 @@ void handle_client(int client_socket, int id)
             string message = "Good Luck to " + clients[x].name + ".";
             broadcast_message("#NULL", -1);
             broadcast_message(message, -1); // 輸出離開訊息到 client
+            shared_print(message);
         }
         else
         {
