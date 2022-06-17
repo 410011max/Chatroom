@@ -115,6 +115,7 @@ void set_name(int id, char name[])
         }
     }
 }
+
 // For synchronisation of cout statements
 void shared_print(string str, bool endLine = true)
 {
@@ -137,19 +138,6 @@ int broadcast_message(string message, int sender_id)
         }
     }
 }
-/*
-// Broadcast a number to other clients
-int broadcast_message(int num, int sender_id)
-{
-    for(int i=0; i<clients.size(); i++)
-    {
-        if(clients[i].id!=sender_id)  // 不發送給自己
-        {
-            send(clients[i].socket,&num,sizeof(num),0);
-        }
-    }
-}
-*/
 
 // Clint end connection
 void end_connection(int id)
@@ -212,10 +200,11 @@ void server_control(int server_socket){
             cout << "close server and clients\n";
 
             //close clients
-            string message = string("\n\t//////server closed//////\n");
+            string message = string("\n\t//////server closed//////\n\t//////press enter to end//////");
             broadcast_message("#NULL", -1);
             broadcast_message(message,-1);
-            shared_print(message);
+            // shared_print(message);
+            cout<<"\n\t//////server closed//////\n";
 
             while (clients.size()>0)
             {
