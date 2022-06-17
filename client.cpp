@@ -44,9 +44,14 @@ int main()
     // 輸入使用者名稱並傳送給server
     char new_name[200];
     cout << "Enter your name\n";
-    cin.getline(new_name, 200);
-    send(client_socket, new_name, sizeof(new_name), 0);
-
+    while (cin.getline(new_name, 200))
+    {
+        if (strlen(new_name) > 0)
+        {
+            send(client_socket, new_name, sizeof(new_name), 0);
+            break;
+        }
+    }
     char server_message[200];
     recv(client_socket, server_message, sizeof(server_message), 0);
     // 新使用者須註冊、舊使用者須登入
@@ -55,9 +60,9 @@ int main()
     {
         cout << "Create your password:" << endl;
         cin.getline(password, 200);
-        while (strlen(password) < 3)
+        while (strlen(password) <= 3)
         {
-            cout << "Your password is too short!" << endl;
+            cout << "Your password is too short! (must be more than 3 words)" << endl;
             cin.getline(password, 200);
         }
         send(client_socket, password, sizeof(password), 0);
