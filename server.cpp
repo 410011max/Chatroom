@@ -103,7 +103,7 @@ int main()
 
     return 0;
 }
-
+    
 // Set name of client
 void set_name(int id, char name[])
 {
