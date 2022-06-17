@@ -2,6 +2,9 @@
 NCKU EE_OS_2022 Project 2  Many-to-Many Chatroom
 ## Step to run the Chatroom
 1. Clone this repository
+```
+git clone https://github.com/410011max/Chatroom.git
+```
 2. Run the following commands in your terminal :
 ```
 g++ server.cpp -lpthread -o server
@@ -15,4 +18,4 @@ g++ client.cpp -lpthread -o client
 ```
 ./client
 ```
-5. For opening multiple client applications, repeat step 4.
+5. For opening multiple client applications, repeat step 4 in other terminal.
