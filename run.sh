@@ -1,3 +1,3 @@
-g++ server.cpp -pthread -o server
-g++ client.cpp -pthread -o client
+g++ server.cpp -lpthread -o server
+g++ client.cpp -lpthread -o client
 ./server
