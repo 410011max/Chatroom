@@ -217,12 +217,12 @@ void handle_client(int client_socket, int id)
     if (password == "")
     { // sign up
         user_sign_up(client_socket, name);
-        cout << name << "sign up successfully!" << endl;
+        cout << name << " sign up successfully!" << endl;
     }
     else
     { // sign in
         user_sign_in(client_socket, password);
-        cout << name << "sign in successfully!" << endl;
+        cout << name << " sign in successfully!" << endl;
     }
 
     set_name(id, name); // 設定名稱及上線
