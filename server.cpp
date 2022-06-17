@@ -280,10 +280,11 @@ void server_control(int server_socket)
             cout << "Close server and clients\n";
 
             // close clients
-            string message = string("\n\t//////server closed//////\n");
+            string message = string("\n\t//////server closed//////\n\t//////press enter to end//////");
             broadcast_message("#NULL", -1);
             broadcast_message(message, -1);
-            shared_print(message);
+            // shared_print(message);
+            cout << "\n\t//////server closed//////\n";
 
             while (clients.size() > 0)
             {

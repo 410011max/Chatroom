@@ -128,6 +128,10 @@ void send_message(int client_socket)
 {
     while (1)
     {
+        // if the server type"#exit" to server, return this thread
+        if (exit_flag)
+            return;
+
         cout << "You: ";
         char str[200];
         cin.getline(str, 200);
@@ -150,13 +154,18 @@ void recv_message(int client_socket)
 {
     while (1)
     {
+        // if the client type"#exit" to server, return this thread
         if (exit_flag)
             return;
+
         char name[200], str[200];
 
         int bytes_received = recv(client_socket, name, sizeof(name), 0);
         if (bytes_received <= 0)
             continue;
+
+        if (strcmp(name, "#NULL") != 0)
+            cout << name << ": " << str << endl;
 
         recv(client_socket, str, sizeof(str), 0);
 
@@ -168,6 +177,15 @@ void recv_message(int client_socket)
             cout << name << ": " << str << endl << time_info;
         else
             cout << str << endl;
+
+        // detect special instruction from server
+        if (strcmp(str, "\n\t//////server closed//////\n\t//////press enter to end//////") == 0)
+        {
+            exit_flag = true;
+            t_send.detach();
+            close(client_socket);
+            return;
+        }
 
         cout << "You: ";
         fflush(stdout);
