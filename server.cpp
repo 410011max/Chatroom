@@ -24,8 +24,6 @@ int counter = 0;
 mutex cout_mtx, clients_mtx;
 thread s_ctrl;
 
-
-
 void set_name(int id, char name[]);
 void shared_print(string str, bool endLine);
 // int broadcast_message(string message, int sender_id);
@@ -34,7 +32,6 @@ void end_connection(int id);
 void handle_client(int client_socket, int id);
 // server control
 void server_control(int server_socket);
-
 
 int main()
 {
@@ -68,9 +65,9 @@ int main()
     socklen_t clnt_addr_size = sizeof(clnt_addr);
     int client_socket;
 
-    // create server control thread 
-    thread server_t(server_control,server_socket);
-    s_ctrl=move(server_t);
+    // create server control thread
+    thread server_t(server_control, server_socket);
+    s_ctrl = move(server_t);
 
     while (1)
     {
@@ -95,15 +92,15 @@ int main()
     }
 
     // join server control thread
-    if(s_ctrl.joinable())
+    if (s_ctrl.joinable())
         s_ctrl.join();
-    
+
     close(client_socket);
     close(server_socket);
 
     return 0;
 }
-    
+
 // Set name of client
 void set_name(int id, char name[])
 {
@@ -175,11 +172,11 @@ void handle_client(int client_socket, int id)
 
     // Display welcome message
     string welcome_message = string("Welcome ") + string(name) + string(" to join OS_2022 Chatroom~");
-    broadcast_message("#NULL",id);
+    broadcast_message("#NULL", id);
     // broadcast_message(id,id);
     broadcast_message(welcome_message, id);
     // shared_print(color(id)+welcome_message+def_col);
-    shared_print(welcome_message);  // 輸出 welcome 訊息到 server 畫面
+    shared_print(welcome_message); // 輸出 welcome 訊息到 server 畫面
 
     while (1)
     {
@@ -189,7 +186,7 @@ void handle_client(int client_socket, int id)
         if (strcmp(str, "#exit") == 0)
         {
             // Display leaving message
-            string message = string(name) + string(" has left");        
+            string message = string(name) + string(" has left");
             broadcast_message(message, id);
             shared_print(message);
             end_connection(id);
@@ -203,33 +200,35 @@ void handle_client(int client_socket, int id)
     }
 }
 
-void server_control(int server_socket){
+void server_control(int server_socket)
+{
     char str[200];
-    while(1){
+    while (1)
+    {
         cin.getline(str, 200);
         if (strcmp(str, "exit") == 0)
         {
             cout << "close server and clients\n";
 
-            //close clients
+            // close clients
             string message = string("\n\t//////server closed//////\n");
             broadcast_message("#NULL", -1);
-            broadcast_message(message,-1);
+            broadcast_message(message, -1);
             shared_print(message);
 
-            while (clients.size()>0)
+            while (clients.size() > 0)
             {
                 lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
                 clients[0].th.detach();               // 關閉對應thread
                 if (clients[0].th.joinable())
                     clients[0].th.join();
-                close(clients[0].socket);             // Close the client socket
-                clients.erase(clients.begin());   // Erase client information
+                close(clients[0].socket);       // Close the client socket
+                clients.erase(clients.begin()); // Erase client information
             }
 
             // close server
             s_ctrl.detach();
-            if(s_ctrl.joinable())
+            if (s_ctrl.joinable())
                 s_ctrl.join();
             close(server_socket);
 

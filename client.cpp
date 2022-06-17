@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
+#include <ctime>
 #include <errno.h>
 #include <mutex>
 #include <netinet/in.h>
@@ -9,7 +10,6 @@
 #include <sys/types.h>
 #include <thread>
 #include <unistd.h>
- #include <ctime>
 using namespace std;
 
 bool exit_flag = false;
@@ -46,7 +46,6 @@ int main()
     cout << "Enter your name\n";
     cin.getline(new_name, 200);
     send(client_socket, new_name, sizeof(new_name), 0);
-    
 
     // 開啟兩個執行緒，平行處理接收與傳送資料
     thread t1(send_message, client_socket);
@@ -80,7 +79,6 @@ void catch_ctrl_c(int signal)
     exit(signal);
 }
 
-
 // Send message to server
 void send_message(int client_socket)
 {
@@ -91,7 +89,7 @@ void send_message(int client_socket)
         cin.getline(str, 200);
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0);
-		char *time_info = ctime(&now);
+        char *time_info = ctime(&now);
         if (strcmp(str, "#exit") == 0)
         {
             exit_flag = true;
@@ -118,10 +116,10 @@ void recv_message(int client_socket)
 
         recv(client_socket, str, sizeof(str), 0);
 
-        for(int i=0;i<5;i++)  // Erase text "Yout: " from terminal
+        for (int i = 0; i < 5; i++) // Erase text "Yout: " from terminal
             cout << '\b';
         time_t now = time(0);
-		char *time_info = ctime(&now);
+        char *time_info = ctime(&now);
         if (strcmp(name, "#NULL") != 0)
             cout << name << ": " << str << endl << time_info;
         else
