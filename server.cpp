@@ -287,9 +287,7 @@ void handle_client(int client_socket, int id)
 
     while (1)
     {
-        int bytes_received = recv(client_socket, str, sizeof(str), 0);
-        if (bytes_received <= 0) // error(-1)或斷開連結(0)
-            return;
+        recv(client_socket, str, sizeof(str), 0);
         if (strcmp(str, "#exit") == 0)
         {
             end_connection(id);
@@ -309,9 +307,24 @@ void handle_client(int client_socket, int id)
             shared_print(name_list);
             return;
         }
-        broadcast_message(string(name), id);
-        broadcast_message(string(str), id);
-        shared_print(string(name) + ": " + str);
+        else if (strcmp(str, "#lotto") == 0)
+        {
+            broadcast_message(string(name), id);
+            broadcast_message(string(str), id);
+            shared_print(string(name) + ": " + str);
+
+            srand(time(NULL));               // 設定亂數種子
+            int x = rand() % clients.size(); // 產生亂數
+            string message = "Good Luck to " + clients[x].name + ".";
+            broadcast_message("#NULL", -1);
+            broadcast_message(message, -1); // 輸出離開訊息到 client
+        }
+        else
+        {
+            broadcast_message(string(name), id);
+            broadcast_message(string(str), id);
+            shared_print(string(name) + ": " + str);
+        }
     }
 }
 
