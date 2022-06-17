@@ -238,36 +238,31 @@ void handle_client(int client_socket, int id)
     { // sign up
         user_sign_up(client_socket, name);
         cout << name << " sign up successfully!" << endl;
-        /*
-
-                               _oo0oo_
-                              o8888888o
-                              88" . "88
-                              (| -_- |)
-                              0\  =  /0
-                            ___/`---'\___
-                          .' \\|     |// '.
-                         / \\|||  :  |||// \
-                        / _||||| -:- |||||- \
-                       |   | \\\  -  /// |   |
-                       | \_|  ''\---/''  |_/ |
-                       \  .-\__  '-'  ___/-. /
-                     ___'. .'  /--.--\  `. .'___
-                  ."" '<  `.___\_<|>_/___.' >' "".
-                 | | :  `- \`.;`\ _ /`;.`/ - ` : | |
-                 \  \ `_.   \_ __\ /__ _/   .-` /  /
-             =====`-.____`.___ \_____/___.-`___.-'=====
-                               `=---='
-
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                       佛祖保佑         永無BUG
-        */
     }
     else
     { // sign in
         user_sign_in(client_socket, password);
         cout << name << " sign in successfully!" << endl;
-        /*
+    }
+
+    set_name(id, name); // 設定名稱及上線
+    // Display welcome message
+    string welcome_message = string("Welcome ") + string(name) + string(" to join OS_2022 Chatroom~");
+    string name_list = "Online users:";
+    for (int i = 0; i < clients.size(); i++)
+    {
+        if (clients[i].online == 1)
+            name_list += " " + clients[i].name;
+    }
+
+    broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
+    broadcast_message(welcome_message, id); // 輸出 welcome 訊息到 client
+    broadcast_message("#NULL", id);
+    broadcast_message(name_list, id); // 輸出線上用戶名單到 client
+    shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
+    shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
+
+    /*
                                                 __----~~~~~~~~~~~------___
                                    .  .   ~~//====......          __--~ ~~
                    -.            \_|//     |||\\  ~~~~~~::::... /~
@@ -288,25 +283,7 @@ void handle_client(int client_socket, int id)
                                       //.-~~~--\
 
                             神獸保佑    程式碼無BUG!
-        */
-    }
-
-    set_name(id, name); // 設定名稱及上線
-    // Display welcome message
-    string welcome_message = string("Welcome ") + string(name) + string(" to join OS_2022 Chatroom~");
-    string name_list = "Online users:";
-    for (int i = 0; i < clients.size(); i++)
-    {
-        if (clients[i].online == 1)
-            name_list += " " + clients[i].name;
-    }
-
-    broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
-    broadcast_message(welcome_message, id); // 輸出 welcome 訊息到 client
-    broadcast_message("#NULL", id);
-    broadcast_message(name_list, id); // 輸出線上用戶名單到 client
-    shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
-    shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
+    */
 
     while (1)
     {
