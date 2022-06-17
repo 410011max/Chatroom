@@ -26,9 +26,9 @@ thread s_ctrl;
 
 void set_name(int id, char name[]);
 void shared_print(string str, bool endLine);
-// int broadcast_message(string message, int sender_id);
 int broadcast_message(int num, int sender_id);
 void end_connection(int id);
+int find_user_id(string name) void handle_client(int client_socket, int id);
 void handle_client(int client_socket, int id);
 // server control
 void server_control(int server_socket);
@@ -134,19 +134,6 @@ int broadcast_message(string message, int sender_id)
         }
     }
 }
-/*
-// Broadcast a number to other clients
-int broadcast_message(int num, int sender_id)
-{
-    for(int i=0; i<clients.size(); i++)
-    {
-        if(clients[i].id!=sender_id)  // 不發送給自己
-        {
-            send(clients[i].socket,&num,sizeof(num),0);
-        }
-    }
-}
-*/
 
 // Clint end connection
 void end_connection(int id)
@@ -164,6 +151,17 @@ void end_connection(int id)
     }
 }
 
+int find_user_id(string name)
+{
+    for (int i = 0; i < clients.size(); i++)
+    {
+        if (name == clients[i].name)
+        {
+            return clientsi[i].id;
+        }
+    }
+}
+
 void handle_client(int client_socket, int id)
 {
     char name[200], str[200];
@@ -172,30 +170,44 @@ void handle_client(int client_socket, int id)
 
     // Display welcome message
     string welcome_message = string("Welcome ") + string(name) + string(" to join OS_2022 Chatroom~");
+    string name_list = "Online users:";
+    for (int i = 0; i < clients.size(); i++)
+    {
+        name_list += " " + clients[i].name;
+    }
+
+    broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
+    broadcast_message(welcome_message, id); // 輸出 welcome 訊息到 client
     broadcast_message("#NULL", id);
-    // broadcast_message(id,id);
-    broadcast_message(welcome_message, id);
-    // shared_print(color(id)+welcome_message+def_col);
-    shared_print(welcome_message); // 輸出 welcome 訊息到 server 畫面
+    broadcast_message(name_list, id); // 輸出線上用戶名單到 client
+    shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
+    shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
 
     while (1)
     {
         int bytes_received = recv(client_socket, str, sizeof(str), 0);
-        if (bytes_received <= 0)
+        if (bytes_received <= 0) // error(-1)或斷開連結(0)
             return;
         if (strcmp(str, "#exit") == 0)
         {
             // Display leaving message
             string message = string(name) + string(" has left");
-            broadcast_message(message, id);
+            string name_list = "Online users:";
+            for (int i = 0; i < clients.size(); i++)
+            {
+                name_list += " " + clients[i].name;
+            }
+            broadcast_message("#NULL", id);
+            broadcast_message(message, id); // 輸出離開訊息到 client
+            broadcast_message("#NULL", id);
+            broadcast_message(name_list, id); // 輸出線上用戶名單到 client
             shared_print(message);
+            shared_print(name_list);
             end_connection(id);
             return;
         }
         broadcast_message(string(name), id);
-        // broadcast_message(id,id);
         broadcast_message(string(str), id);
-        // shared_print(color(id)+name+" : "+def_col+str);
         shared_print(string(name) + ": " + str);
     }
 }
