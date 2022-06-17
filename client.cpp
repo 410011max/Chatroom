@@ -170,7 +170,7 @@ void recv_message(int client_socket)
         //     continue;
 
         recv(client_socket, name, sizeof(name), 0);
-        if (strcmp(name, "#Remove") == 0)
+        if (strcmp(name, "#remove") == 0)
         {
             exit_flag = true;
             t_send.detach();

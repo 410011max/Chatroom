@@ -276,7 +276,7 @@ void server_control(int server_socket)
     while (1)
     {
         cin.getline(str, 200);
-        if (strcmp(str, "exit") == 0)
+        if (strcmp(str, "#exit") == 0)
         {
             cout << "Close server and clients\n";
 
@@ -306,7 +306,7 @@ void server_control(int server_socket)
             // cout << "done!!\n";
             exit(0);
         }
-        else if (strcmp(str, "Remove") == 0)
+        else if (strcmp(str, "#remove") == 0)
         {
             char victim[200];
             cout << "Enter victim's name:";
@@ -325,7 +325,7 @@ void server_control(int server_socket)
                 if (strcmp(name_char, victim) == 0)
                 {
                     cout << "Find " << clients[i].name.c_str() << " with id = " << clients[i].id << endl;
-                    const char *message = "#Remove";
+                    const char *message = "#remove";
                     send(clients[i].socket, message, sizeof(message), 0);
                     lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
                     clients[i].th.detach();               // 關閉對應thread
