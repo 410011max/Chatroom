@@ -97,7 +97,7 @@ void send_message(int client_socket)
         // if the server type"#exit" to server, return this thread
         if (exit_flag)
             return;
-            
+
         cout << "You: ";
         char str[200];
         cin.getline(str, 200);
@@ -130,15 +130,16 @@ void recv_message(int client_socket)
         if(recv(client_socket, str, sizeof(str), 0)<=0){
             exit(-1);
         };
-        eraseText(6); // ??
+        eraseText(6); 
         
         if(strcmp(name,"#NULL")!=0)
             cout << name << ": " << str << endl;
-        //    cout<<color(color_code)<<name<<" : "<<def_col<<str<<endl;
         else
             cout <<str << endl;
 
-        if(strcmp(str,"\n\t//////server closed//////\n")==0){
+        // detect special instruction from server
+        if(strcmp(str,"\n\t//////server closed//////\n\t//////press enter to end//////")==0){
+            
             exit_flag = true;
             t_send.detach();
             close(client_socket);
