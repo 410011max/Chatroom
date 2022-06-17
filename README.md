@@ -1,2 +1,2 @@
 # Chatroom
-NCKU - EE-OS - Project 2  Many-to-Many Chatroom
+NCKU EE_OS_2022 Project 2  Many-to-Many Chatroom
