@@ -305,6 +305,44 @@ void server_control(int server_socket)
             // cout << "done!!\n";
             exit(0);
         }
+        else if (strcmp(str, "Remove") == 0)
+        {
+            char victim[200];
+            cout << "Enter victim's name:";
+            cin.getline(victim, 200);
+            cout << "Removing " << victim << "......" << endl;
+            string message = string(victim) + string(" has been removed");
+
+            for (auto it = clients.begin(); it != clients.end(); it++)
+            {
+                cout << (*it).name << "(" << (*it).id << ")\n";
+            }
+
+            int id = -1, i = 0;
+            for (i = 0; i < clients.size(); i++)
+            {
+                const char *name_char = clients[i].name.c_str();
+                if (strcmp(name_char, victim) == 0)
+                {
+                    cout << "Find " << clients[i].name.c_str() << " with id = " << clients[i].id << endl;
+                    lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
+                    clients[i].th.detach();               // 關閉對應thread
+                    clients.erase(clients.begin() + i);   // Erase client information
+                    close(clients[i].socket);             // Close the client socket
+                    break;
+                }
+            }
+            if (i == clients.size())
+            {
+                cout << victim << " not exist.\n";
+            }
+            else
+            {
+                broadcast_message(message, -1);
+                shared_print(message);
+            }
+            cout << "done\n";
+        }
         else
         {
             cout << "nothing happened\n";
