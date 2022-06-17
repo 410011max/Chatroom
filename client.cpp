@@ -14,10 +14,11 @@ using namespace std;
 
 bool exit_flag = false;
 thread t_send, t_recv;
+mutex cout_mtx;
 int client_socket;
 
 void catch_ctrl_c(int signal);
-// string color(int code);
+void shared_print(string str, bool endLine);
 void send_message(int client_socket);
 void recv_message(int client_socket);
 
@@ -40,6 +41,7 @@ int main()
         cout << "Can't connect to Server.\n";
         exit(-1);
     }
+    signal(SIGINT, catch_ctrl_c);
 
     // 輸入使用者名稱並傳送給server
     char new_name[200];
@@ -135,6 +137,15 @@ void catch_ctrl_c(int signal)
     exit(signal);
 }
 
+// fix synchronization problem for cout
+void shared_print(string str, bool endLine = true)
+{
+    lock_guard<mutex> guard(cout_mtx); // lock cout_mtx 直到 guard 結束
+    cout << str;
+    if (endLine)
+        cout << endl;
+}
+
 // Send message to server
 void send_message(int client_socket)
 {
@@ -144,7 +155,8 @@ void send_message(int client_socket)
         if (exit_flag)
             return;
 
-        cout << "You: ";
+        // cout << "You: ";
+        shared_print("You: ", false);
         char str[200];
         cin.getline(str, 200);
         send(client_socket, str, sizeof(str), 0);
@@ -157,7 +169,8 @@ void send_message(int client_socket)
             close(client_socket);
             return;
         }
-        cout << time_info;
+        // cout << time_info;
+        shared_print(time_info, false);
     }
 }
 
@@ -177,21 +190,23 @@ void recv_message(int client_socket)
             continue;
 
         if (strcmp(name, "#NULL") != 0)
-            cout << name << ": " << str << endl;
+            shared_print(string(name) + ": " + str);
+        // cout << name << ": " << str << endl;
 
         recv(client_socket, str, sizeof(str), 0);
 
         for (int i = 0; i < 5; i++) // Erase text "Yout: " from terminal
-            cout << '\b';
+            shared_print("\b", false);
+        // cout << '\b';
         time_t now = time(0);
         char *time_info = ctime(&now);
-       
-       
+
         // detect special instruction from server
         if (strcmp(str, "\n\t//////server closed//////\n\t//////press enter to end//////") == 0 ||
             strcmp(str, "\n\t!!!You were kiked out!!!\n") == 0)
         {
-            cout << str << endl;
+            // cout << str << endl;
+            shared_print(str);
             exit_flag = true;
             t_send.detach();
             close(client_socket);
@@ -199,12 +214,14 @@ void recv_message(int client_socket)
         }
 
         if (strcmp(name, "#NULL") != 0)
-            cout << name << ": " << str << endl << time_info;
+            shared_print(string(name) + ": " + str + "\n" + time_info, false);
+        // cout << name << ": " << str << endl << time_info;
         else
-            cout << str << endl;
+            shared_print(str);
+        // cout << str << endl;
 
-
-        cout << "You: ";
+        // cout << "You: ";
+        shared_print("You: ", false);
         fflush(stdout);
     }
 }

@@ -298,16 +298,16 @@ void server_control(int server_socket)
     while (1)
     {
         cin.getline(str, 200);
-        
+
         if (strcmp(str, "#exit") == 0)
         {
-            shared_print(string("Close server and clients\n"));
+            shared_print(string("Close server and clients"));
 
             // close clients
             string message = string("\n\t//////server closed//////\n\t//////press enter to end//////");
             broadcast_message("#NULL", -1);
             broadcast_message(message, -1);
-            shared_print(string("\n\t//////server closed//////\n"));
+            shared_print(string("\n\t//////server closed//////"));
 
             while (clients.size() > 0)
             {
@@ -338,14 +338,14 @@ void server_control(int server_socket)
             shared_print(string(victim));
             shared_print(string("......"));
 
-            string message = string("\n\t----")+string(victim) + string(" has been removed----\n");
+            string message = string("\n\t----") + string(victim) + string(" has been removed----\n");
 
             // for (auto it = clients.begin(); it != clients.end(); it++)
             // {
             //     cout << (*it).name << "(" << (*it).id << ")\n";
             // }
-            bool exist=false;
-            int  i = 0;
+            bool exist = false;
+            int i = 0;
             for (i = 0; i < clients.size(); i++)
             {
                 const char *name_char = clients[i].name.c_str();
@@ -359,15 +359,15 @@ void server_control(int server_socket)
             if (!exist)
             {
                 shared_print(string(victim));
-                shared_print(string(" not exist.\n"));
+                shared_print(string(" not exist."));
             }
             else
             {
                 broadcast_message("#NULL", -1);
-                broadcast_message(message,clients[i].id );//不傳給被踢的人
+                broadcast_message(message, clients[i].id); //不傳給被踢的人
 
                 string kik_message = "\n\t!!!You were kiked out!!!\n";
-                
+
                 char temp[200];
                 strcpy(temp, kik_message.c_str());
                 send(clients[i].socket, temp, sizeof(temp), 0); // 只傳給被踢的人
@@ -384,7 +384,7 @@ void server_control(int server_socket)
         }
         else
         {
-            shared_print(string("nothing happened\n"));
+            shared_print(string("nothing happened"));
         }
     }
 }
