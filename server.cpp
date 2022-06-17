@@ -150,8 +150,8 @@ void end_connection(int id)
         {
             lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
             clients[i].th.detach();               // 關閉對應thread
-            clients.erase(clients.begin() + i);   // Erase client information
             close(clients[i].socket);             // Close the client socket
+            clients.erase(clients.begin() + i);   // Erase client information
             break;
         }
     }
@@ -165,7 +165,6 @@ string find_user_password(string find_name)
 
     while (ifs >> name >> password)
     {
-        cout << name << endl;
         if (name == find_name)
             break;
         password = "";
@@ -218,12 +217,12 @@ void handle_client(int client_socket, int id)
     if (password == "")
     { // sign up
         user_sign_up(client_socket, name);
-        cout << "Sign up successfully!" << endl;
+        cout << name << "sign up successfully!" << endl;
     }
     else
     { // sign in
         user_sign_in(client_socket, password);
-        cout << "Sign in successfully!" << endl;
+        cout << name << "sign in successfully!" << endl;
     }
 
     set_name(id, name); // 設定名稱及上線
@@ -329,8 +328,8 @@ void server_control(int server_socket)
                     cout << "Find " << clients[i].name.c_str() << " with id = " << clients[i].id << endl;
                     lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
                     clients[i].th.detach();               // 關閉對應thread
-                    clients.erase(clients.begin() + i);   // Erase client information
                     close(clients[i].socket);             // Close the client socket
+                    clients.erase(clients.begin() + i);   // Erase client information
                     break;
                 }
             }
