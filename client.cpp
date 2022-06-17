@@ -170,6 +170,15 @@ void recv_message(int client_socket)
         //     continue;
 
         recv(client_socket, name, sizeof(name), 0);
+        if (strcmp(name, "#Remove") == 0)
+        {
+            exit_flag = true;
+            t_send.detach();
+            t_recv.detach();
+            close(client_socket);
+            exit(-1);
+        }
+
         recv(client_socket, str, sizeof(str), 0);
 
         for (int i = 0; i < 5; i++) // Erase text "You: " from terminal

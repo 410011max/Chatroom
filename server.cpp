@@ -312,7 +312,6 @@ void server_control(int server_socket)
             cout << "Enter victim's name:";
             cin.getline(victim, 200);
             cout << "Removing " << victim << "......" << endl;
-            string message = string(victim) + string(" has been removed");
 
             for (auto it = clients.begin(); it != clients.end(); it++)
             {
@@ -326,6 +325,8 @@ void server_control(int server_socket)
                 if (strcmp(name_char, victim) == 0)
                 {
                     cout << "Find " << clients[i].name.c_str() << " with id = " << clients[i].id << endl;
+                    const char *message = "#Remove";
+                    send(clients[i].socket, message, sizeof(message), 0);
                     lock_guard<mutex> guard(clients_mtx); // lock 直到清除 client 資料結束
                     clients[i].th.detach();               // 關閉對應thread
                     close(clients[i].socket);             // Close the client socket
@@ -339,6 +340,8 @@ void server_control(int server_socket)
             }
             else
             {
+                string message = string(victim) + string(" has been removed.");
+                broadcast_message("#NULL", -1);
                 broadcast_message(message, -1);
                 shared_print(message);
             }
