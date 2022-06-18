@@ -29,7 +29,8 @@ thread s_ctrl;
 
 void set_name(int id, char name[]);
 void shared_print(string str, bool newline);
-void broadcast_message(string message, int sender_id) void end_connection(int id);
+void broadcast_message(string message, int sender_id);
+void end_connection(int id);
 int find_user_id(string name);
 bool user_sign_in(int client_socket, string name);
 bool user_sign_up(int client_socket, string name);
