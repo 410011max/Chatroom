@@ -262,11 +262,12 @@ void handle_client(int client_socket, int id)
     shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
     shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
 
-    cout << R"(  
+  
+cout << R"(  
                                                 __----~~~~~~~~~~~------___
                                    .  .   ~~//====......          __--~ ~~
                    -.            \_|//     |||\\  ~~~~~~::::... /~
-                ___-==_       _-~o~  \/    |||  \\            _/~~-
+                ___-==_       _-~~  \/    |||  \\            _/~~-
         __---~~~.==~||\=_    -_--~/_-~|-   |\\   \\        _/~
     _-~~     .=~    |  \\-_    '-~7  /-   /  ||    \      /
   .~       .~       |   \\ -_    /  /-   /   ||      \   /
@@ -283,12 +284,13 @@ void handle_client(int client_socket, int id)
                                       //.-~~~--\
 
                             神獸保佑    程式碼無BUG!
-    )"
-         << "\n";
+    )"<<"\n";
 
     while (1)
     {
-        recv(client_socket, str, sizeof(str), 0);
+        int bytes_received = recv(client_socket, str, sizeof(str), 0);
+        if (bytes_received <= 0) // error(-1)或斷開連結(0)
+            return;
         if (strcmp(str, "#exit") == 0)
         {
             end_connection(id);
@@ -316,22 +318,21 @@ void handle_client(int client_socket, int id)
 
             srand(time(NULL));               // 設定亂數種子
             int x = rand() % clients.size(); // 產生亂數
-            string message = "Good Luck to " + clients[x].name + ".";
+            string message = "\n\t----Good Luck to " + clients[x].name + ".----\n";
             broadcast_message("#NULL", -1);
             broadcast_message(message, -1); // 輸出離開訊息到 client
             shared_print(message);
+            continue;
         }
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0'){
             broadcast_message(string(name), -1);
             broadcast_message(string(str), -1);
             shared_print(string(name) + ": " + str);
+            continue;
         }
-        else
-        {
-            broadcast_message(string(name), id);
-            broadcast_message(string(str), id);
-            shared_print(string(name) + ": " + str);
-        }
+        broadcast_message(string(name), id);
+        broadcast_message(string(str), id);
+        shared_print(string(name) + ": " + str);
     }
 }
 

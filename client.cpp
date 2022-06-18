@@ -154,13 +154,14 @@ void send_message(int client_socket)
     while (1)
     {
         // if the server type"#exit" to server, return this thread
-        if (exit_flag)
-            return;
 
         // cout << "You: ";
         shared_print("You: ", false);
         char str[200];
         cin.getline(str, 200);
+        
+        if (exit_flag)
+            return;
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0);
         char *time_info = ctime(&now);
