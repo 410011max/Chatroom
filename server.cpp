@@ -238,16 +238,6 @@ void handle_client(int client_socket, int id)
     if (recv(client_socket, name, sizeof(name), 0) <= 0)
     {
         end_connection(id);
-        printf("byebye!\n");
-        string message = string(name) + string(" has left");
-        string name_list = "Online users:";
-        for (int i = 0; i < clients.size(); i++)
-        {
-            if (clients[i].online == 1)
-                name_list += " " + clients[i].name;
-        }
-        shared_print(message);
-        shared_print(name_list);
         return;
     }
     string password = find_user_password(name);
@@ -320,9 +310,25 @@ void handle_client(int client_socket, int id)
 
     while (1)
     {
-        int bytes_received = recv(client_socket, str, sizeof(str), 0);
-        if (bytes_received <= 0) // error(-1)或斷開連結(0)
+        if (recv(client_socket, str, sizeof(str), 0) <= 0) // error(-1)或斷開連結(0)
+        {
+            end_connection(id);
+            string message = string(name) + string(" has left");
+            string name_list = "Online users:";
+            for (int i = 0; i < clients.size(); i++)
+            {
+                if (clients[i].online == 1)
+                    name_list += " " + clients[i].name;
+            }
+            broadcast_message("#NULL", id);
+            broadcast_message(message, id); // 輸出離開訊息到 client
+            broadcast_message("#NULL", id);
+            broadcast_message(name_list, id); // 輸出線上用戶名單到 client
+            shared_print(message);
+            shared_print(name_list);
             return;
+        }
+
         if (strcmp(str, "#exit") == 0)
         {
             end_connection(id);
