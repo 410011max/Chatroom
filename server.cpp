@@ -32,8 +32,8 @@ void shared_print(string str, bool endLine);
 int broadcast_message(int num, int sender_id);
 void end_connection(int id);
 int find_user_id(string name);
-void user_sign_in(int client_socket, int id);
-void user_sign_up(int client_socket, int id);
+bool user_sign_in(int client_socket, string name);
+bool user_sign_up(int client_socket, string name);
 void user_is_online(int client_socket);
 void handle_client(int client_socket, int id);
 // server control
@@ -183,19 +183,25 @@ string find_user_password(string find_name)
     return password;
 }
 
-void user_sign_up(int client_socket, string name)
+bool user_sign_up(int client_socket, string name)
 {
     char message[200] = "sign up";
     send(client_socket, message, sizeof(message), 0); // 告訴 client 需要註冊
     char password[200];
-    recv(client_socket, password, sizeof(password), 0); // 接收 client 註冊的密碼
+    if (recv(client_socket, password, sizeof(password), 0) <= 0)
+    { // 接收 client 註冊的密碼
+        cout << "oh no! sign up error!" << endl;
+        return 0;
+    }
     ofstream ofs;
     ofs.open("./user_list.csv", ios::app); // 儲存到資料庫
     ofs << name << "\n" << password << endl;
     ofs.close();
+
+    return 1;
 }
 
-void user_sign_in(int client_socket, string correct_password_str)
+bool user_sign_in(int client_socket, string correct_password_str)
 {
     char message[200] = "sign in";
     send(client_socket, message, sizeof(message), 0); // 告訴 client 需要登入
@@ -204,12 +210,16 @@ void user_sign_in(int client_socket, string correct_password_str)
     strcpy(correct_password, correct_password_str.c_str());
     while (1)
     {
-        recv(client_socket, password, sizeof(password), 0); // 接收 client 輸入的密碼
-        if (strcmp(password, correct_password) == 0)        // 密碼正確
+        if (recv(client_socket, password, sizeof(password), 0) <= 0)
+        { // 接收 client 輸入的密碼
+            cout << "oh no! sign in error!" << endl;
+            return 0;
+        }
+        if (strcmp(password, correct_password) == 0) // 密碼正確
         {
             char message[200] = "right";
             send(client_socket, message, sizeof(message), 0);
-            return;
+            return 1;
         }
         char message[200] = "wrong"; // 密碼錯誤，需重新輸入
         send(client_socket, message, sizeof(message), 0);
@@ -225,7 +235,21 @@ void user_is_online(int client_socket)
 void handle_client(int client_socket, int id)
 {
     char name[200], str[200];
-    recv(client_socket, name, sizeof(name), 0);
+    if (recv(client_socket, name, sizeof(name), 0) <= 0)
+    {
+        end_connection(id);
+        printf("byebye!\n");
+        string message = string(name) + string(" has left");
+        string name_list = "Online users:";
+        for (int i = 0; i < clients.size(); i++)
+        {
+            if (clients[i].online == 1)
+                name_list += " " + clients[i].name;
+        }
+        shared_print(message);
+        shared_print(name_list);
+        return;
+    }
     string password = find_user_password(name);
 
     if (password == "user is online")
@@ -236,12 +260,20 @@ void handle_client(int client_socket, int id)
     }
     else if (password == "")
     { // sign up
-        user_sign_up(client_socket, name);
+        if (user_sign_up(client_socket, name) == 0)
+        {
+            end_connection(id);
+            return;
+        }
         cout << name << " sign up successfully!" << endl;
     }
     else
     { // sign in
-        user_sign_in(client_socket, password);
+        if (user_sign_in(client_socket, password) == 0)
+        {
+            end_connection(id);
+            return;
+        }
         cout << name << " sign in successfully!" << endl;
     }
 
@@ -262,8 +294,7 @@ void handle_client(int client_socket, int id)
     shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
     shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
 
-  
-cout << R"(  
+    cout << R"(  
                                                 __----~~~~~~~~~~~------___
                                    .  .   ~~//====......          __--~ ~~
                    -.            \_|//     |||\\  ~~~~~~::::... /~
@@ -284,7 +315,8 @@ cout << R"(
                                       //.-~~~--\
 
                             神獸保佑    程式碼無BUG!
-    )"<<"\n";
+    )"
+         << "\n";
 
     while (1)
     {
@@ -324,7 +356,8 @@ cout << R"(
             shared_print(message);
             continue;
         }
-        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0'){
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
+        {
             broadcast_message(string(name), -1);
             broadcast_message(string(str), -1);
             shared_print(string(name) + ": " + str);

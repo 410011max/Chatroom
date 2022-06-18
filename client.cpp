@@ -17,6 +17,7 @@ thread t_send, t_recv;
 mutex cout_mtx;
 int client_socket;
 char client_name[200];
+int online = 0;
 
 void catch_ctrl_c(int signal);
 void shared_print(string str, bool endLine);
@@ -46,7 +47,7 @@ int main()
     signal(SIGINT, catch_ctrl_c);
 
     // 輸入使用者名稱並傳送給server
-    
+
     cout << "Enter your name\n";
     while (cin.getline(client_name, 200))
     {
@@ -58,6 +59,7 @@ int main()
     }
     char server_message[200];
     recv(client_socket, server_message, sizeof(server_message), 0);
+
     // 新使用者須註冊、舊使用者須登入
     char password[200];
     if (strcmp(server_message, "sign up") == 0)
@@ -84,7 +86,7 @@ int main()
                 break;
             else if (strcmp(server_message, "wrong") == 0)
             {
-                cout << "Password is wrong!" << endl;
+                cout << "Password is wrong11!" << endl;
                 continue;
             }
             else
@@ -108,6 +110,7 @@ int main()
     }
 
     // 開啟兩個執行緒，平行處理接收與傳送資料
+    online = 1;
     thread t1(send_message, client_socket);
     thread t2(recv_message, client_socket);
 
@@ -130,11 +133,14 @@ int main()
 // Handler for "Ctrl + C"
 void catch_ctrl_c(int signal)
 {
-    char str[200] = "#exit";
-    send(client_socket, str, sizeof(str), 0);
-    exit_flag = true;
-    t_send.detach();
-    t_recv.detach();
+    if (online)
+    {
+        char str[200] = "#exit";
+        send(client_socket, str, sizeof(str), 0);
+        exit_flag = true;
+        t_send.detach();
+        t_recv.detach();
+    }
     close(client_socket);
     exit(signal);
 }
@@ -189,8 +195,10 @@ void recv_message(int client_socket)
 
         char name[200], str[200];
         // lock_guard<mutex> guard(cout_mtx);
-        if(recv(client_socket, name, sizeof(name), 0)<=0)return;
-        if(recv(client_socket, str, sizeof(str), 0)<=0)return;
+        if (recv(client_socket, name, sizeof(name), 0) <= 0)
+            return;
+        if (recv(client_socket, str, sizeof(str), 0) <= 0)
+            return;
 
         for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
             shared_print("\b", false);
@@ -211,10 +219,10 @@ void recv_message(int client_socket)
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
         {
             string sticker = find_sticker(str[1]);
-            if(strcmp(name,client_name)==0)
-                shared_print(string("You: ")  + sticker);
+            if (strcmp(name, client_name) == 0)
+                shared_print(string("You: ") + sticker);
             else
-            shared_print(string(name) + ":     " + sticker);
+                shared_print(string(name) + ":     " + sticker);
         }
         else
         {
@@ -232,7 +240,7 @@ void recv_message(int client_socket)
 }
 
 string find_sticker(char c)
-{   
+{
     string sticker;
     switch (c)
     {
