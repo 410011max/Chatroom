@@ -28,15 +28,13 @@ mutex cout_mtx, clients_mtx;
 thread s_ctrl;
 
 void set_name(int id, char name[]);
-void shared_print(string str, bool endLine);
-int broadcast_message(int num, int sender_id);
-void end_connection(int id);
+void shared_print(string str, bool newline);
+void broadcast_message(string message, int sender_id) void end_connection(int id);
 int find_user_id(string name);
 bool user_sign_in(int client_socket, string name);
 bool user_sign_up(int client_socket, string name);
 void user_is_online(int client_socket);
 void handle_client(int client_socket, int id);
-// server control
 void server_control(int server_socket);
 
 int main()
@@ -120,16 +118,16 @@ void set_name(int id, char name[])
     }
 }
 // For synchronisation of cout statements
-void shared_print(string str, bool endLine = true)
+void shared_print(string str, bool newline = true)
 {
     lock_guard<mutex> guard(cout_mtx); // lock cout_mtx 直到 guard 結束
     cout << str;
-    if (endLine)
+    if (newline)
         cout << endl;
 }
 
 // Broadcast message to other clients
-int broadcast_message(string message, int sender_id)
+void broadcast_message(string message, int sender_id)
 {
     char temp[200];
     strcpy(temp, message.c_str());
