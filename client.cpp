@@ -144,6 +144,10 @@ void send_message(int client_socket)
                     else
                     {
                         cout << "Something error!" << endl;
+                        exit_flag = true;
+                        t_send.detach();
+                        t_recv.detach();
+                        close(client_socket);
                         exit(-1);
                     }
                 }
