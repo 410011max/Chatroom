@@ -18,9 +18,10 @@ mutex cout_mtx;
 int client_socket;
 char client_name[200];
 int online = 0;
+string output_buffer = "";
 
 void catch_ctrl_c(int signal);
-void shared_print(string str, bool endLine);
+void shared_print(string str, bool newline);
 void send_message(int client_socket);
 void recv_message(int client_socket);
 string find_sticker(char c);
@@ -81,7 +82,7 @@ int main()
             cout << "Your password is wrong!" << endl;
         }
         send(client_socket, password, sizeof(password), 0);
-        cout << "Welcome to join OS_2022 Chatroom!" << endl;
+        cout << "Welcome to sign up for OS_2022 Chatroom!\n" << endl;
     }
     else if (strcmp(server_message, "sign in") == 0)
     {
@@ -92,10 +93,13 @@ int main()
             send(client_socket, password, sizeof(password), 0);
             recv(client_socket, server_message, sizeof(server_message), 0);
             if (strcmp(server_message, "right") == 0)
+            {
+                cout << "Welcome to sign in for OS_2022 Chatroom!\n" << endl;
                 break;
+            }
             else if (strcmp(server_message, "wrong") == 0)
             {
-                cout << "Password is wrong11!" << endl;
+                cout << "Password is wrong!" << endl;
                 continue;
             }
             else
@@ -155,27 +159,39 @@ void catch_ctrl_c(int signal)
 }
 
 // fix synchronization problem for cout
-void shared_print(string str, bool endLine = true)
+void shared_print(string str, bool newline = true)
 {
     lock_guard<mutex> guard(cout_mtx); // lock cout_mtx 直到 guard 結束
     cout << str;
-    if (endLine)
+    if (newline)
         cout << endl;
 }
 
 // Send message to server
 void send_message(int client_socket)
 {
-    while (1)
+    while (exit_flag == 0) // 如果 flag 沒有被拉高 (沒有 #exit 或沒有被 remove)
     {
-        // if the server type"#exit" to server, return this thread
-        if (exit_flag)
-            return;
-
-        // cout << "You: ";
         shared_print("You: ", false);
+        // cout << "You: ";
+
+        output_buffer = "";
+        char c = 0;
+        while (1)
+        {
+            c = getchar();
+            if (c == '\n')
+                break;
+            output_buffer += c;
+            // cout << output_buffer.length() << endl;
+        }
+        output_buffer += "              "; // 解決stdin的殘存問題
+        //  cout << output_buffer << endl;
+
+        // const char *str1 = output_buffer.c_str();
+        // printf("%s\n", str1);
         char str[200];
-        cin.getline(str, 200);
+        strcpy(str, output_buffer.c_str());
 
         // lock_guard<mutex> guard(cout_mtx);
         send(client_socket, str, sizeof(str), 0);
@@ -188,20 +204,21 @@ void send_message(int client_socket)
             close(client_socket);
             return;
         }
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
+        {
+            string sticker = find_sticker(str[1]);
+            shared_print(sticker);
+        }
         // cout << time_info;
-        shared_print(time_info, false);
+        shared_print(time_info);
     }
 }
 
 // Receive message from server
 void recv_message(int client_socket)
 {
-    while (1)
+    while (exit_flag == 0) // 如果 flag 沒有被拉高 (沒有 #exit 或沒有被 remove)
     {
-        // if the client type"#exit" to server, return this thread
-        if (exit_flag)
-            return;
-
         char name[200], str[200];
         // lock_guard<mutex> guard(cout_mtx);
         if (recv(client_socket, name, sizeof(name), 0) <= 0)
@@ -209,9 +226,10 @@ void recv_message(int client_socket)
         if (recv(client_socket, str, sizeof(str), 0) <= 0)
             return;
 
-        for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
+        for (int i = 0; i < 5; i++) // Erase text "You: xxxxx" from terminal
             shared_print("\b", false);
         // cout << '\b';
+
         time_t now = time(0);
         char *time_info = ctime(&now);
         // detect special instruction from server
@@ -228,22 +246,26 @@ void recv_message(int client_socket)
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
         {
             string sticker = find_sticker(str[1]);
-            if (strcmp(name, client_name) == 0)
-                shared_print(string("You: ") + sticker);
+            if (strcmp(name, "#NULL") != 0)
+                shared_print(string(name) + string(":    ") + sticker + "\n" + time_info);
+            // cout << name << ": " << str << endl << time_info;
             else
-                shared_print(string(name) + ":     " + sticker);
+                shared_print(sticker);
+            // cout << str << endl;
         }
         else
         {
             if (strcmp(name, "#NULL") != 0)
-                shared_print(string(name) + ": " + str + "\n" + time_info, false);
+                shared_print(string(name) + string(": ") + string(str) + string("\n") + time_info);
             // cout << name << ": " << str << endl << time_info;
             else
-                shared_print(str);
+                shared_print(string(str));
             // cout << str << endl;
         }
         // cout << "You: ";
         shared_print("You: ", false);
+        // shared_print(output_buffer, false);
+        // cout << output_buffer.length() << endl;
         fflush(stdout);
     }
 }
@@ -355,7 +377,7 @@ string find_sticker(char c)
            `-.__ `,  `'   .  _.>----''.  _  __  /
                 .'        /"'          |  "'   '_
                /_|.-'\ ,".             '.'`__'-( \
-                 / ,"'"\,'               `/  `-.|" mh)";
+                 / ,"'"\,'               `/  `-.|"\)";
         break;
     case '3':
         sticker = R"(
@@ -559,5 +581,5 @@ string find_sticker(char c)
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡏⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠳⡄⠀⠀⠙⠦⣄)";
         break;
     }
-    return sticker;
+    return sticker + "\n";
 }

@@ -279,9 +279,9 @@ void handle_client(int client_socket, int id)
     broadcast_message("#NULL", id);         // server 發送之公告，沒有發送者 (client) 名字
     broadcast_message(welcome_message, id); // 輸出 welcome 訊息到 client
     broadcast_message("#NULL", id);
-    broadcast_message(name_list, id); // 輸出線上用戶名單到 client
-    shared_print(welcome_message);    // 輸出 welcome 訊息到 server 畫面
-    shared_print(name_list);          // 輸出線上用戶名單到 server 畫面
+    broadcast_message(name_list + string("\n"), id); // 輸出線上用戶名單到 client
+    shared_print(welcome_message);                   // 輸出 welcome 訊息到 server 畫面
+    shared_print(name_list);                         // 輸出線上用戶名單到 server 畫面
 
     cout << R"(  
                                                 __----~~~~~~~~~~~------___
@@ -322,7 +322,7 @@ void handle_client(int client_socket, int id)
             broadcast_message("#NULL", id);
             broadcast_message(message, id); // 輸出離開訊息到 client
             broadcast_message("#NULL", id);
-            broadcast_message(name_list, id); // 輸出線上用戶名單到 client
+            broadcast_message(name_list + string("\n"), id); // 輸出線上用戶名單到 client
             shared_print(message);
             shared_print(name_list);
             return;
@@ -363,8 +363,8 @@ void handle_client(int client_socket, int id)
         }
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
         {
-            broadcast_message(string(name), -1);
-            broadcast_message(string(str), -1);
+            broadcast_message(string(name), id);
+            broadcast_message(string(str), id);
             shared_print(string(name) + ": " + str);
             continue;
         }
