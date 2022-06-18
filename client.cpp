@@ -64,12 +64,21 @@ int main()
     char password[200];
     if (strcmp(server_message, "sign up") == 0)
     {
-        cout << "Create your password:" << endl;
-        cin.getline(password, 200);
-        while (strlen(password) < 3)
+        while (1)
         {
-            cout << "Your password is too short! (must be at least 3 words)" << endl;
+            char check_password[200];
+            cout << "Create your password:" << endl;
             cin.getline(password, 200);
+            while (strlen(password) < 3)
+            {
+                cout << "Your password is too short! (must be at least 3 words)" << endl;
+                cin.getline(password, 200);
+            }
+            cout << "Confirm your password:" << endl;
+            cin.getline(check_password, 200);
+            if (strcmp(password, check_password) == 0)
+                break;
+            cout << "Your password is wrong!" << endl;
         }
         send(client_socket, password, sizeof(password), 0);
         cout << "Welcome to join OS_2022 Chatroom!" << endl;

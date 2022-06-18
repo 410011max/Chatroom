@@ -381,8 +381,14 @@ void server_control(int server_socket)
     {
         cin.getline(str, 200);
 
-        if (strcmp(str, "#exit") == 0)
+        if (strcmp(str, "#exit") == 0 || strcmp(str, "#clear") == 0)
         {
+            if (strcmp(str, "#clear") == 0)
+            {
+                string file = "user_list.csv";
+                remove(file.c_str());
+            }
+
             shared_print(string("Close server and clients"));
 
             // close clients
