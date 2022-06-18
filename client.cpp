@@ -16,6 +16,7 @@ bool exit_flag = false;
 thread t_send, t_recv;
 mutex cout_mtx;
 int client_socket;
+char client_name[200];
 
 void catch_ctrl_c(int signal);
 void shared_print(string str, bool endLine);
@@ -45,13 +46,13 @@ int main()
     signal(SIGINT, catch_ctrl_c);
 
     // 輸入使用者名稱並傳送給server
-    char new_name[200];
+    
     cout << "Enter your name\n";
-    while (cin.getline(new_name, 200))
+    while (cin.getline(client_name, 200))
     {
-        if (strlen(new_name) > 0)
+        if (strlen(client_name) > 0)
         {
-            send(client_socket, new_name, sizeof(new_name), 0);
+            send(client_socket, client_name, sizeof(client_name), 0);
             break;
         }
     }
@@ -207,6 +208,9 @@ void recv_message(int client_socket)
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
         {
             string sticker = find_sticker(str[1]);
+            if(strcmp(name,client_name)==0)
+                shared_print(string("You: ")  + sticker);
+            else
             shared_print(string(name) + ":     " + sticker);
         }
         else
