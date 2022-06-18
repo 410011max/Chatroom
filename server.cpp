@@ -417,9 +417,7 @@ void server_control(int server_socket)
             shared_print(string("Enter victim's name:"));
 
             cin.getline(victim, 200);
-            shared_print(string("Removing "));
-            shared_print(string(victim));
-            shared_print(string("......"));
+            shared_print(string("Removing ") + string(victim) + string("......"));
 
             string message = string("\n\t----") + string(victim) + string(" has been removed----\n");
 
@@ -441,8 +439,7 @@ void server_control(int server_socket)
             }
             if (!exist)
             {
-                shared_print(string(victim));
-                shared_print(string(" not exist."));
+                shared_print(string(victim) + string(" not exist."));
             }
             else
             {
