@@ -45,68 +45,6 @@ int main()
     }
     signal(SIGINT, catch_ctrl_c);
 
-    // 輸入使用者名稱並傳送給server
-    
-    cout << "Enter your name\n";
-    while (cin.getline(client_name, 200))
-    {
-        if (strlen(client_name) > 0)
-        {
-            send(client_socket, client_name, sizeof(client_name), 0);
-            break;
-        }
-    }
-    char server_message[200];
-    recv(client_socket, server_message, sizeof(server_message), 0);
-    // 新使用者須註冊、舊使用者須登入
-    char password[200];
-    if (strcmp(server_message, "sign up") == 0)
-    {
-        cout << "Create your password:" << endl;
-        cin.getline(password, 200);
-        while (strlen(password) < 3)
-        {
-            cout << "Your password is too short! (must be at least 3 words)" << endl;
-            cin.getline(password, 200);
-        }
-        send(client_socket, password, sizeof(password), 0);
-        cout << "Welcome to join OS_2022 Chatroom!" << endl;
-    }
-    else if (strcmp(server_message, "sign in") == 0)
-    {
-        while (1)
-        {
-            cout << "Enter your password:" << endl;
-            cin.getline(password, 200);
-            send(client_socket, password, sizeof(password), 0);
-            recv(client_socket, server_message, sizeof(server_message), 0);
-            if (strcmp(server_message, "right") == 0)
-                break;
-            else if (strcmp(server_message, "wrong") == 0)
-            {
-                cout << "Password is wrong!" << endl;
-                continue;
-            }
-            else
-            {
-                cout << "Something error!" << endl;
-                exit(-1);
-            }
-        }
-    }
-    else if (strcmp(server_message, "user is online") == 0)
-    {
-        cout << "User is already online." << endl;
-        exit_flag = true;
-        close(client_socket);
-        exit(-1);
-    }
-    else
-    {
-        cout << "Something error!" << endl;
-        exit(-1);
-    }
-
     // 開啟兩個執行緒，平行處理接收與傳送資料
     thread t1(send_message, client_socket);
     thread t2(recv_message, client_socket);
@@ -147,22 +85,94 @@ void shared_print(string str, bool endLine = true)
     if (endLine)
         cout << endl;
 }
-
+void log_in(){
+    
+}
 // Send message to server
 void send_message(int client_socket)
 {
+    bool login=false;
     while (1)
     {
         // if the server type"#exit" to server, return this thread
         if (exit_flag)
             return;
+        // handling login at the beginning( fix bug: the loop cause by ctr+c when passward wrong) 
+        if(!login){
+            char server_message[200];
+            char password[200];
+            // 輸入使用者名稱並傳送給server
+            cout << "Enter your name\n";
+            while (cin.getline(client_name, 200))
+            {
+                if (strlen(client_name) > 0)
+                {
+                    send(client_socket, client_name, sizeof(client_name), 0);
+                    break;
+                }
+            }
+            if(recv(client_socket, server_message, sizeof(server_message), 0)<=0) return;
 
-        // cout << "You: ";
+            // 新使用者須註冊、舊使用者須登入
+            if (strcmp(server_message, "sign up") == 0)
+            {
+                cout << "Create your password:" << endl;
+                cin.getline(password, 200);
+                while (strlen(password) < 3)
+                {
+                    cout << "Your password is too short! (must be at least 3 words)" << endl;
+                    cin.getline(password, 200);
+                }
+                send(client_socket, password, sizeof(password), 0);
+                cout << "Welcome to join OS_2022 Chatroom!" << endl;
+            }
+            else if (strcmp(server_message, "sign in") == 0)
+            {
+                while (1)
+                {
+                    cout << "Enter your password:" << endl;
+                    cin.getline(password, 200);
+                    send(client_socket, password, sizeof(password), 0);
+                    recv(client_socket, server_message, sizeof(server_message), 0);
+                    if (strcmp(server_message, "right") == 0)
+                        break;
+                    else if (strcmp(server_message, "wrong") == 0)
+                    {
+                        cout << "Password is wrong!" << endl;
+                        continue;
+                    }
+                    else
+                    {
+                        cout << "Something error!" << endl;
+                        exit(-1);
+                    }
+                }
+            }
+            else if (strcmp(server_message, "user is online") == 0)
+            {
+                cout << "User is already online." << endl;
+                exit_flag = true;
+                t_send.detach();
+                t_recv.detach();
+                close(client_socket);
+                exit(-1);
+            }
+            else
+            {
+                cout << "Something error!" << endl;
+                exit_flag = true;
+                t_send.detach();
+                t_recv.detach();
+                close(client_socket);
+                exit(-1);
+            }
+            login=true;
+        }
+
         shared_print("You: ", false);
         char str[200];
         cin.getline(str, 200);
 
-        // lock_guard<mutex> guard(cout_mtx);
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0);
         char *time_info = ctime(&now);
@@ -174,7 +184,7 @@ void send_message(int client_socket)
             return;
         }
         // cout << time_info;
-        shared_print(time_info, false);
+        shared_print(string("\t")+time_info, false);
     }
 }
 
@@ -188,15 +198,12 @@ void recv_message(int client_socket)
             return;
 
         char name[200], str[200];
-        // lock_guard<mutex> guard(cout_mtx);
-        if(recv(client_socket, name, sizeof(name), 0)<=0)
-            return;
-        if (recv(client_socket, str, sizeof(str), 0) <= 0)
-            return;
+        if(recv(client_socket, name, sizeof(name), 0)<=0)return;
+        if(recv(client_socket, str, sizeof(str), 0)<=0)return;
 
         for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
             shared_print("\b", false);
-        // cout << '\b';
+
         time_t now = time(0);
         char *time_info = ctime(&now);
         // detect special instruction from server
@@ -221,7 +228,7 @@ void recv_message(int client_socket)
         else
         {
             if (strcmp(name, "#NULL") != 0)
-                shared_print(string(name) + ": " + str + "\n" + time_info, false);
+                shared_print(string(name) + ": " + str + "\n\t" + time_info, false);
             // cout << name << ": " << str << endl << time_info;
             else
                 shared_print(str);
