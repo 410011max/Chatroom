@@ -154,14 +154,15 @@ void send_message(int client_socket)
     while (1)
     {
         // if the server type"#exit" to server, return this thread
+        if (exit_flag)
+            return;
 
         // cout << "You: ";
         shared_print("You: ", false);
         char str[200];
         cin.getline(str, 200);
-        
-        if (exit_flag)
-            return;
+
+        // lock_guard<mutex> guard(cout_mtx);
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0);
         char *time_info = ctime(&now);
@@ -187,8 +188,11 @@ void recv_message(int client_socket)
             return;
 
         char name[200], str[200];
-        recv(client_socket, name, sizeof(name), 0);
-        recv(client_socket, str, sizeof(str), 0);
+        // lock_guard<mutex> guard(cout_mtx);
+        if(recv(client_socket, name, sizeof(name), 0)<=0)
+            return;
+        if (recv(client_socket, str, sizeof(str), 0) <= 0)
+            return;
 
         for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
             shared_print("\b", false);
@@ -230,7 +234,7 @@ void recv_message(int client_socket)
 }
 
 string find_sticker(char c)
-{
+{   
     string sticker;
     switch (c)
     {
