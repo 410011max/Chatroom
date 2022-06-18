@@ -321,6 +321,11 @@ void handle_client(int client_socket, int id)
             broadcast_message(message, -1); // 輸出離開訊息到 client
             shared_print(message);
         }
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0'){
+            broadcast_message(string(name), -1);
+            broadcast_message(string(str), -1);
+            shared_print(string(name) + ": " + str);
+        }
         else
         {
             broadcast_message(string(name), id);
