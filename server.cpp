@@ -369,8 +369,8 @@ void handle_client(int client_socket, int id)
         }
         else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0') // 貼圖功能
         {
-            broadcast_message(string(name), id);
-            broadcast_message(string(str), id);
+            broadcast_message(string(name), -1);
+            broadcast_message(string(str), -1);
             shared_print(string(name) + ": " + str);
             continue;
         }

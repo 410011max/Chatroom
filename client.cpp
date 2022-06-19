@@ -17,6 +17,7 @@ thread t_send, t_recv; // send、rece 兩個subthread
 mutex cout_mtx;
 int client_socket;
 int online = 0; // 判斷是否已經登入成功
+char client_name[200];
 
 void catch_ctrl_c(int signal); // 處理ctrl + c
 void shared_print(string str, bool newline); // 處理兩個 thread 的 cout 分配問題
@@ -46,7 +47,7 @@ int main()
     signal(SIGINT, catch_ctrl_c);  // 擷取ctrl + c
 
     // 輸入使用者名稱並傳送給server
-    char client_name[200];
+    
     cout << "Enter your name\n";
     while (cin.getline(client_name, 200))
     {
@@ -247,29 +248,25 @@ void recv_message(int client_socket)
             close(client_socket);
             return;
         }
-        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0') // 貼圖功能
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
         {
             string sticker = find_sticker(str[1]);
+            if(strcmp(name,client_name)==0)
+                shared_print(string("You: ")  + sticker);
+            else
+            shared_print(string(name) + ":     " + sticker);
+        }
+        else
+        {
             if (strcmp(name, "#NULL") != 0)
-                shared_print(string(name) + string(":    ") + sticker + "\n" + time_info);
+                shared_print(string(name) + ": " + str + "\n" + time_info, false);
             // cout << name << ": " << str << endl << time_info;
             else
-                shared_print(sticker);
-            // cout << str << endl;
-        }
-        else // 輸出收到的訊息到畫面上
-        {
-            if (strcmp(name, "#NULL") != 0) // 其他使用者發送之訊息
-                shared_print(string(name) + string(": ") + string(str) + string("\n") + time_info);
-            // cout << name << ": " << str << endl << time_info;
-            else // 伺服器發送之公告
-                shared_print(string(str));
+                shared_print(str);
             // cout << str << endl;
         }
         // cout << "You: ";
         shared_print("You: ", false);
-        // shared_print(output_buffer, false);
-        // cout << output_buffer.length() << endl;
         fflush(stdout);
     }
 }
