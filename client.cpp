@@ -17,7 +17,7 @@ thread t_send, t_recv; // send、rece 兩個subthread
 mutex cout_mtx;
 int client_socket;
 int online = 0; // 判斷是否已經登入成功
-char client_name[200];
+//string output_buffer;
 
 void catch_ctrl_c(int signal); // 處理ctrl + c
 void shared_print(string str, bool newline); // 處理兩個 thread 的 cout 分配問題
@@ -47,7 +47,7 @@ int main()
     signal(SIGINT, catch_ctrl_c);  // 擷取ctrl + c
 
     // 輸入使用者名稱並傳送給server
-    
+    char client_name[200];
     cout << "Enter your name\n";
     while (cin.getline(client_name, 200))
     {
@@ -176,33 +176,26 @@ void send_message(int client_socket)
         shared_print("You: ", false);
         // cout << "You: ";
 
-        string output_buffer = "";
-        char c;
-        while (1)
-        {
-            c = getchar();
-            if (c == '\n')
-                break;
-            output_buffer += c;
-            // cout << output_buffer.length() << endl;
-        }
-        output_buffer += "                 "; // 解決stdin的殘存問題
+        char str[200];
+        cin.getline(str,200);
+        
+        //output_buffer += "                 "; // 解決stdin的殘存問題
         //  cout << output_buffer << endl;
 
         // const char *str1 = output_buffer.c_str();
         // printf("%s\n", str1);
-        char str[200];
-        strcpy(str, output_buffer.c_str());
+        
+        // strcpy(str, output_buffer.c_str());
 
         // lock_guard<mutex> guard(cout_mtx);
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0); // 加入時間訊息
         char *time_info = ctime(&now); // 轉換形式
-        char test[6] ;
-        strcpy(test,str);
-        test[5] = '\0';
+        //char test[6] ;
+        //strcpy(test,str);
+        //test[5] = '\0';
         //printf("%s\n",test);
-        if (strcmp(test, "#exit") == 0) // 判斷client是否要exit
+        if (strcmp(str, "#exit") == 0) // 判斷client是否要exit
         {
             exit_flag = true;
             t_recv.detach();
@@ -215,6 +208,7 @@ void send_message(int client_socket)
             shared_print(sticker);
         }
         // cout << time_info;
+        //printf("here: %s\n",str);
         shared_print(time_info);
     }
 }
@@ -248,25 +242,29 @@ void recv_message(int client_socket)
             close(client_socket);
             return;
         }
-        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0') // 貼圖功能
         {
             string sticker = find_sticker(str[1]);
-            if(strcmp(name,client_name)==0)
-                shared_print(string("You: ")  + sticker);
-            else
-            shared_print(string(name) + ":     " + sticker);
-        }
-        else
-        {
             if (strcmp(name, "#NULL") != 0)
-                shared_print(string(name) + ": " + str + "\n" + time_info, false);
+                shared_print(string(name) + string(":    ") + sticker + "\n" + time_info);
             // cout << name << ": " << str << endl << time_info;
             else
-                shared_print(str);
+                shared_print(sticker);
+            // cout << str << endl;
+        }
+        else // 輸出收到的訊息到畫面上
+        {
+            if (strcmp(name, "#NULL") != 0) // 其他使用者發送之訊息
+                shared_print(string(name) + string(": ") + string(str) + string("\n") + time_info);
+            // cout << name << ": " << str << endl << time_info;
+            else // 伺服器發送之公告
+                shared_print(string(str));
             // cout << str << endl;
         }
         // cout << "You: ";
         shared_print("You: ", false);
+        // shared_print(output_buffer, false);
+        // cout << output_buffer.length() << endl;
         fflush(stdout);
     }
 }
