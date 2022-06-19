@@ -13,18 +13,16 @@
 using namespace std;
 
 bool exit_flag = false;
-thread t_send, t_recv;
+thread t_send, t_recv; // send、rece 兩個subthread
 mutex cout_mtx;
 int client_socket;
-char client_name[200];
-int online = 0;
-string output_buffer = "";
+int online = 0; // 判斷是否已經登入成功
 
-void catch_ctrl_c(int signal);
-void shared_print(string str, bool newline);
-void send_message(int client_socket);
-void recv_message(int client_socket);
-string find_sticker(char c);
+void catch_ctrl_c(int signal); // 處理ctrl + c
+void shared_print(string str, bool newline); // 處理兩個 thread 的 cout 分配問題
+void send_message(int client_socket);  // subthread 負責送訊息給server
+void recv_message(int client_socket); // subthread 負責接受server傳來的訊息
+string find_sticker(char c); // 貼圖功能
 
 int main()
 {
@@ -45,25 +43,25 @@ int main()
         cout << "Can't connect to Server.\n";
         exit(-1);
     }
-    signal(SIGINT, catch_ctrl_c);
+    signal(SIGINT, catch_ctrl_c);  // 擷取ctrl + c
 
     // 輸入使用者名稱並傳送給server
-
+    char client_name[200];
     cout << "Enter your name\n";
     while (cin.getline(client_name, 200))
     {
         if (strlen(client_name) > 0)
         {
-            send(client_socket, client_name, sizeof(client_name), 0);
+            send(client_socket, client_name, sizeof(client_name), 0); // 傳送名字給server
             break;
         }
     }
     char server_message[200];
-    recv(client_socket, server_message, sizeof(server_message), 0);
+    recv(client_socket, server_message, sizeof(server_message), 0);  // server回傳需 sign in 或 sign up
 
     // 新使用者須註冊、舊使用者須登入
     char password[200];
-    if (strcmp(server_message, "sign up") == 0)
+    if (strcmp(server_message, "sign up") == 0) // 註冊
     {
         while (1)
         {
@@ -85,7 +83,7 @@ int main()
         cout << find_sticker('1') << endl;
         cout << "Welcome to sign up for OS_2022 Chatroom!\n" << endl;
     }
-    else if (strcmp(server_message, "sign in") == 0)
+    else if (strcmp(server_message, "sign in") == 0) // 登入
     {
         while (1)
         {
@@ -111,7 +109,7 @@ int main()
             }
         }
     }
-    else if (strcmp(server_message, "user is online") == 0)
+    else if (strcmp(server_message, "user is online") == 0) // 用戶已經在線上，無法重複登入
     {
         cout << "User is already online." << endl;
         exit_flag = true;
@@ -129,11 +127,11 @@ int main()
     thread t1(send_message, client_socket);
     thread t2(recv_message, client_socket);
 
-    // unknown
+    // 將thread資料global化
     t_send = move(t1);
     t_recv = move(t2);
 
-    //檢查可否join，並結束執行續
+    // 檢查可否join，並結束執行續
     if (t_send.joinable())
         t_send.join();
     if (t_recv.joinable())
@@ -148,7 +146,7 @@ int main()
 // Handler for "Ctrl + C"
 void catch_ctrl_c(int signal)
 {
-    if (online)
+    if (online) // 如果已經登入，須關閉subthread及發送exit訊息給server
     {
         char str[200] = "#exit";
         send(client_socket, str, sizeof(str), 0);
@@ -172,13 +170,13 @@ void shared_print(string str, bool newline = true)
 // Send message to server
 void send_message(int client_socket)
 {
-    while (exit_flag == 0) // 如果 flag 沒有被拉高 (沒有 #exit 或沒有被 remove)
+    while (exit_flag == 0) // 如果 flag 沒有被拉高 (沒有 #exit 或沒有被 #remove)
     {
         shared_print("You: ", false);
         // cout << "You: ";
 
-        output_buffer = "";
-        char c = 0;
+        string output_buffer = "";
+        char c;
         while (1)
         {
             c = getchar();
@@ -197,20 +195,20 @@ void send_message(int client_socket)
 
         // lock_guard<mutex> guard(cout_mtx);
         send(client_socket, str, sizeof(str), 0);
-        time_t now = time(0);
-        char *time_info = ctime(&now);
+        time_t now = time(0); // 加入時間訊息
+        char *time_info = ctime(&now); // 轉換形式
         char test[6] ;
         strcpy(test,str);
         test[5] = '\0';
         //printf("%s\n",test);
-        if (strcmp(test, "#exit") == 0)
+        if (strcmp(test, "#exit") == 0) // 判斷client是否要exit
         {
             exit_flag = true;
             t_recv.detach();
             close(client_socket);
             return;
         }
-        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0') // 判斷是否使用貼圖
         {
             string sticker = find_sticker(str[1]);
             shared_print(sticker);
@@ -227,20 +225,20 @@ void recv_message(int client_socket)
     {
         char name[200], str[200];
         // lock_guard<mutex> guard(cout_mtx);
-        if (recv(client_socket, name, sizeof(name), 0) <= 0)
+        if (recv(client_socket, name, sizeof(name), 0) <= 0) // 錯誤或斷開連結，須中止執行
             return;
-        if (recv(client_socket, str, sizeof(str), 0) <= 0)
+        if (recv(client_socket, str, sizeof(str), 0) <= 0) // 錯誤或斷開連結，須中止執行
             return;
 
-        for (int i = 0; i < 5; i++) // Erase text "You: xxxxx" from terminal
+        for (int i = 0; i < 5; i++) // Erase text "You: " from terminal
             shared_print("\b", false);
         // cout << '\b';
 
-        time_t now = time(0);
+        time_t now = time(0); // 時間訊息
         char *time_info = ctime(&now);
         // detect special instruction from server
         if (strcmp(str, "\n\t//////server closed//////\n\t//////press enter to end//////") == 0 ||
-            strcmp(str, "\n\t!!!You were kiked out!!!\n") == 0)
+            strcmp(str, "\n\t!!!You were kiked out!!!\n") == 0) // server關閉
         {
             // cout << str << endl;
             shared_print(str);
@@ -249,7 +247,7 @@ void recv_message(int client_socket)
             close(client_socket);
             return;
         }
-        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0')
+        else if (str[0] == '#' && '9' >= str[1] && str[1] >= '0') // 貼圖功能
         {
             string sticker = find_sticker(str[1]);
             if (strcmp(name, "#NULL") != 0)
@@ -259,12 +257,12 @@ void recv_message(int client_socket)
                 shared_print(sticker);
             // cout << str << endl;
         }
-        else
+        else // 輸出收到的訊息到畫面上
         {
-            if (strcmp(name, "#NULL") != 0)
+            if (strcmp(name, "#NULL") != 0) // 其他使用者發送之訊息
                 shared_print(string(name) + string(": ") + string(str) + string("\n") + time_info);
             // cout << name << ": " << str << endl << time_info;
-            else
+            else // 伺服器發送之公告
                 shared_print(string(str));
             // cout << str << endl;
         }
@@ -276,6 +274,7 @@ void recv_message(int client_socket)
     }
 }
 
+// cute sticker
 string find_sticker(char c)
 {
     string sticker;
