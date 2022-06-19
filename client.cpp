@@ -187,7 +187,7 @@ void send_message(int client_socket)
             output_buffer += c;
             // cout << output_buffer.length() << endl;
         }
-        output_buffer += "              "; // 解決stdin的殘存問題
+        output_buffer += "                 "; // 解決stdin的殘存問題
         //  cout << output_buffer << endl;
 
         // const char *str1 = output_buffer.c_str();
@@ -199,7 +199,11 @@ void send_message(int client_socket)
         send(client_socket, str, sizeof(str), 0);
         time_t now = time(0);
         char *time_info = ctime(&now);
-        if (strcmp(str, "#exit") == 0)
+        char test[6] ;
+        strcpy(test,str);
+        test[5] = '\0';
+        //printf("%s\n",test);
+        if (strcmp(test, "#exit") == 0)
         {
             exit_flag = true;
             t_recv.detach();

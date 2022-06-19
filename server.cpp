@@ -327,9 +327,10 @@ void handle_client(int client_socket, int id)
             shared_print(name_list);
             return;
         }
-
+        
         if (strcmp(str, "#exit") == 0)
         {
+            printf("here!\n");
             end_connection(id);
             // Display leaving message
             string message = string(name) + string(" has left OS_2022 Chatroom QAQ");
