@@ -8,9 +8,9 @@ git clone https://github.com/410011max/Chatroom.git
 2. Run the following commands in your terminal :
 ```
 make
-
+```
 or
-
+```
 g++ server.cpp -lpthread -o server
 g++ client.cpp -lpthread -o client
 ```
