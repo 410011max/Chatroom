@@ -9,7 +9,7 @@ git clone https://github.com/410011max/Chatroom.git
 ```
 make
 ```
-or
+  or
 ```
 g++ server.cpp -lpthread -o server
 g++ client.cpp -lpthread -o client
