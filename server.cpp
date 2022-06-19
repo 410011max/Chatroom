@@ -327,7 +327,7 @@ void handle_client(int client_socket, int id)
             shared_print(name_list);
             return;
         }
-        
+
         if (strcmp(str, "#exit") == 0)
         {
             printf("here!\n");
@@ -386,6 +386,7 @@ void server_control(int server_socket)
         {
             if (strcmp(str, "#clear") == 0)
             {
+                shared_print(string("Clear user list"));
                 string file = "user_list.csv";
                 remove(file.c_str());
             }
@@ -396,7 +397,7 @@ void server_control(int server_socket)
             string message = string("\n\t//////server closed//////\n\t//////press enter to end//////");
             broadcast_message("#NULL", -1);
             broadcast_message(message, -1);
-            shared_print(string("\n\t//////server closed//////"));
+            shared_print(string("\n\t//////server closed//////\n"));
 
             while (clients.size() > 0)
             {
