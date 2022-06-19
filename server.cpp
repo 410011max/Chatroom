@@ -312,7 +312,7 @@ void handle_client(int client_socket, int id)
         if (recv(client_socket, str, sizeof(str), 0) <= 0) // error(-1)或斷開連結(0)
         {
             end_connection(id);
-            string message = string(name) + string(" has left");
+            string message = string(name) + string(" has left OS_2022 Chatroom QAQ");
             string name_list = "Online users:";
             for (int i = 0; i < clients.size(); i++)
             {
@@ -332,7 +332,7 @@ void handle_client(int client_socket, int id)
         {
             end_connection(id);
             // Display leaving message
-            string message = string(name) + string(" has left");
+            string message = string(name) + string(" has left OS_2022 Chatroom QAQ");
             string name_list = "Online users:";
             for (int i = 0; i < clients.size(); i++)
             {

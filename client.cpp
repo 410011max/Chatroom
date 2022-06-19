@@ -82,6 +82,7 @@ int main()
             cout << "Your password is wrong!" << endl;
         }
         send(client_socket, password, sizeof(password), 0);
+        cout << find_sticker('1') << endl;
         cout << "Welcome to sign up for OS_2022 Chatroom!\n" << endl;
     }
     else if (strcmp(server_message, "sign in") == 0)
@@ -94,6 +95,7 @@ int main()
             recv(client_socket, server_message, sizeof(server_message), 0);
             if (strcmp(server_message, "right") == 0)
             {
+                cout << find_sticker('7') << endl;
                 cout << "Welcome to sign in for OS_2022 Chatroom!\n" << endl;
                 break;
             }
