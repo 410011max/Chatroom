@@ -31,3 +31,4 @@ g++ client.cpp -lpthread -o client
   - on server terminal:
     - Terminate all client and server threads: enter "#exit."   
     - Remove a user: enter "#remove", and then enter the target's name. 
+    - Clear all user data: enter "#clear."
